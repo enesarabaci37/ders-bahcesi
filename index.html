@@ -580,7 +580,7 @@ function openSubject(sid){
   ACTS.filter(a=>a.s===sid).forEach(a=>{
     const b=el('button','acard');b.style.setProperty('--c',s.color);
     const nowTag=a.isNew?'<span class="now">Yeni</span>':a.months&&a.months.includes(MONTH)?'<span class="now">Sınıfta şimdi</span>':'';
-    const lv=a.kind==='cards'?'Keşfet':a.href?`Bölüm ${Math.min(lvl(a.id),a.max)} / ${a.max}`:`Seviye ${lvl(a.id)}${a.max?' / '+a.max:''}`;
+    const lv=a.kind==='cards'?'Keşfet':a.href?(a.label||`Bölüm ${Math.min(lvl(a.id),a.max)} / ${a.max}`):`Seviye ${lvl(a.id)}${a.max?' / '+a.max:''}`;
     b.innerHTML=`<span class="gicon">${a.icon}</span><span class="gtext"><span class="gname">${a.name}${nowTag}</span><span class="gdesc">${a.desc}</span></span><span class="gmeta"><span class="lvl">${lv}</span>${a.kind==='cards'?'':`<span class="gst">★ ${actStars(a.id)}</span>`}</span>`;
     b.onclick=()=>{sfx.tap();startAct(a.id,Math.min(lvl(a.id),a.max||99))};
     list.append(b);
@@ -1598,7 +1598,8 @@ A({id:'e_talk',s:'ing',name:'Selamlaşma ve Günler',icon:'👋',desc:'Hello, Go
   }});
 
 /* ---------------- AKIL BAHÇESİ ---------------- */
-[{id:'orman',name:'Orman Dostları',desc:'Hayvanları besle, yeni yerler keşfet',icon:'🐿️',href:'orman/',max:4,isNew:true},
+[{id:'blok',name:'Blok Çiftliği',desc:'İnşa et, ek, hayvanlarını besle',icon:'🧱',href:'blok/',label:'Serbest oyun',isNew:true},
+ {id:'orman',name:'Orman Dostları',desc:'Hayvanları besle, yeni yerler keşfet',icon:'🐿️',href:'orman/',max:4},
  {id:'memory',name:'Hafıza Kartları',desc:'Eş hayvanları bul',icon:'🐼'},
  {id:'pattern',name:'Sıradaki Ne?',desc:'Örüntüyü tamamla',icon:'🔮'},
  {id:'sudoku',name:'Meyve Sudoku',desc:'Her sırada bir kez',icon:'🍓'},
