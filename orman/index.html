@@ -218,6 +218,35 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
 .rsec{font-family:var(--display);font-size:20px;color:var(--leaf2);margin:16px 0 8px}
 .rsec:first-child{margin-top:0}
 
+/* yıldız ve dükkân */
+.rbtn.stars{width:auto;padding:0 14px;gap:6px;display:flex;align-items:center;font-size:22px;color:#7a4b00;font-variant-numeric:tabular-nums}
+.rbtn.stars b{font-family:var(--display);font-size:22px}
+.rbtn.bump{animation:bump .45s}
+.rbtn.want{animation:want2 1s ease-in-out infinite}
+.bal{background:rgba(255,255,255,.22);border-radius:999px;padding:6px 12px;font-family:var(--display);font-size:20px;flex:none;font-variant-numeric:tabular-nums}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab{flex:1;border-radius:16px;padding:10px;font-family:var(--display);font-size:19px;background:#efe6d2;color:var(--muted)}
+.tab.on{background:var(--leaf);color:#fff}
+.sgrid,.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.sitem,.wbtn{background:#fff;border-radius:20px;padding:10px;text-align:center;box-shadow:inset 0 -4px 0 #ece3cf;display:flex;flex-direction:column;align-items:center;gap:6px}
+.sitem canvas{width:100%;max-width:200px;aspect-ratio:220/180;border-radius:14px;background:#eef6e6}
+.sitem b,.wbtn b{font-family:var(--display);font-size:18px;line-height:1.1}
+.sitem small,.wbtn small{color:var(--muted);font-size:13px}
+.sbtn{width:100%;border-radius:14px;padding:9px;font-family:var(--display);font-size:19px;background:linear-gradient(180deg,#ffd45e,var(--sun));color:#4a2d00;box-shadow:inset 0 -4px 0 var(--sun2)}
+.sbtn.green{background:linear-gradient(180deg,#5cc062,var(--leaf));color:#fff;box-shadow:inset 0 -4px 0 var(--leaf2)}
+.sbtn.dis{background:#e8e2d4;color:#8d826b;box-shadow:inset 0 -4px 0 #d6cdb8}
+.sbtn:active{transform:translateY(2px)}
+.sown{font-family:var(--display);color:var(--leaf2);font-size:17px;padding:9px}
+.earn{display:inline-block;background:#fff3c4;color:#7a4b00;border-radius:999px;padding:6px 16px;font-family:var(--display);font-size:22px;margin:0 0 14px;animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
+.wbtn img{width:100%;height:150px;object-fit:contain}
+.wbtn.on{box-shadow:inset 0 -4px 0 #ece3cf,0 0 0 4px var(--sun)}
+@media (max-width:480px){
+  #hud{gap:7px}.rbtn{width:44px;height:44px;font-size:21px;border-radius:14px}.rbtn.stars{padding:0 9px;gap:4px}.rbtn.stars b{font-size:19px}
+  .rbadge{padding:5px 10px 6px}.rbadge b{font-size:16px}.rbadge small{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #dlg{top:calc(env(safe-area-inset-top,0px) + 68px)}
+}
+.back2{display:inline-block;margin-bottom:12px;font-family:var(--display);font-size:18px;color:var(--leaf2);padding:6px 4px}
+
 /* açılış */
 #splash{position:fixed;inset:0;z-index:70;display:grid;place-items:center;text-align:center;
   background:radial-gradient(ellipse at 50% 40%,rgba(255,255,255,.0),rgba(10,30,10,.55));padding:24px}
@@ -248,6 +277,7 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
   <button class="rbtn" id="homeBtn" aria-label="Ders Bahçesi'ne dön">‹</button>
   <div class="rbadge"><b id="rName">Fındık Ormanı</b><div class="rprog"><i id="rBar"></i></div><small id="rTxt"></small></div>
   <span class="sp"></span>
+  <button class="rbtn stars" id="starBtn" aria-label="Hediye Dükkânı"><span>⭐</span><b id="starN">0</b></button>
   <button class="rbtn" id="albumBtn" aria-label="Dost kartları">📖</button>
   <button class="rbtn" id="sndBtn" aria-label="Sesi aç ya da kapat">🔊</button>
 </div>
@@ -349,11 +379,45 @@ const REGIONS=[
 ];
 const SOON={name:'Buzul Diyarı',desc:'Penguenler ve foklar seni bekliyor'};
 
+/* ================= hediye dükkânı ================= */
+const SHOP=[
+  {id:'fiyonk',n:'Pembe Fiyonk',p:5,t:'acc'},{id:'cicek',n:'Papatya',p:5,t:'acc'},{id:'parti',n:'Parti Şapkası',p:8,t:'acc'},
+  {id:'gozluk',n:'Güneş Gözlüğü',p:10,t:'acc'},{id:'tac',n:'Altın Taç',p:15,t:'acc'},
+  {id:'bahce',n:'Çiçek Bahçesi',p:10,t:'deco'},{id:'fener',n:'Orman Feneri',p:12,t:'deco'},{id:'mantarev',n:'Mantar Ev',p:20,t:'deco'},{id:'gokkusagi',n:'Gökkuşağı',p:25,t:'deco'}];
+/* baş tepesi [x,y,boy] ve göz [x,y,r] noktaları, birim ölçekte */
+const HEAD={sincap:[12,-85,15],tavsan:[27,-70,13],fare:[25,-43,11],geyik:[45,-120,11],tilki:[33,-71,12],kirpi:[20,-27,10],ordek:[20,-61,11],kurbaga:[17,-48,10],kunduz:[23,-66,12],ayi:[38,-95,18],keci:[46,-105,11],kartavsan:[27,-70,13]};
+const EYEP={sincap:[22,-71,4.8],tavsan:[27,-59,4.4],fare:[28,-32,3.8],geyik:[47,-113,4.4],tilki:[37,-63,4],kirpi:[26,-19,3.6],ordek:[24,-53,3.6],kurbaga:[24,-42,3.6],kunduz:[28,-56,3.8],ayi:[46,-80,4.4],keci:[45,-98,4],kartavsan:[27,-59,4.4]};
+function accShape(c,id,s){
+  if(id==='fiyonk'){c.rotate(-.2);c.fillStyle='#ff6fa0';for(const d of[-1,1]){c.beginPath();c.moveTo(0,0);c.quadraticCurveTo(d*s*1.15,-s*.95,d*s*1.1,0);c.quadraticCurveTo(d*s*1.15,s*.95,0,0);c.fill()}
+    c.fillStyle='#e84a82';E(c,0,0,s*.3,s*.32);c.fill();c.fillStyle='rgba(255,255,255,.45)';E(c,-s*.62,-s*.28,s*.26,s*.12,-.4);c.fill();E(c,s*.55,-s*.3,s*.2,s*.1,.4);c.fill()}
+  else if(id==='cicek'){c.translate(0,-s*.2);for(let i=0;i<7;i++){c.save();c.rotate(i/7*TAU);c.fillStyle='#fffdf6';E(c,s*.5,0,s*.42,s*.2);c.fill();c.restore()}
+    const g=c.createRadialGradient(-s*.08,-s*.08,1,0,0,s*.3);g.addColorStop(0,'#ffe680');g.addColorStop(1,'#f2b01e');c.fillStyle=g;E(c,0,0,s*.3,s*.3);c.fill()}
+  else if(id==='parti'){c.rotate(.18);c.beginPath();c.moveTo(-s*.75,0);c.lineTo(0,-s*2.1);c.lineTo(s*.75,0);c.closePath();
+    const g=c.createLinearGradient(-s,0,s,0);g.addColorStop(0,'#6b3fc2');g.addColorStop(1,'#a77cf0');c.fillStyle=g;c.fill();
+    c.save();c.clip();c.strokeStyle='#ffd23f';c.lineWidth=s*.22;for(let i=-3;i<3;i++){c.beginPath();c.moveTo(-s,i*s*.6);c.lineTo(s,i*s*.6-s*.5);c.stroke()}c.restore();
+    c.fillStyle='#ff6b57';E(c,0,-s*2.1,s*.32,s*.32);c.fill();c.fillStyle='#ffffff';E(c,0,0,s*.8,s*.16);c.fill()}
+  else if(id==='tac'){c.rotate(-.1);const g=c.createLinearGradient(0,-s*1.2,0,0);g.addColorStop(0,'#fff0a0');g.addColorStop(1,'#e0a018');c.fillStyle=g;
+    c.beginPath();c.moveTo(-s*.9,0);c.lineTo(-s,-s*1.05);c.lineTo(-s*.45,-s*.5);c.lineTo(0,-s*1.3);c.lineTo(s*.45,-s*.5);c.lineTo(s,-s*1.05);c.lineTo(s*.9,0);c.closePath();c.fill();
+    c.strokeStyle='#b97e0c';c.lineWidth=s*.08;c.stroke();
+    [[-s,-s*1.05],[0,-s*1.3],[s,-s*1.05]].forEach(([x,y])=>{c.fillStyle='#fff6c8';E(c,x,y,s*.13,s*.13);c.fill()});
+    c.fillStyle='#e8344a';E(c,0,-s*.38,s*.17,s*.2);c.fill();c.fillStyle='#3a8be8';E(c,-s*.55,-s*.28,s*.11,s*.13);c.fill();E(c,s*.55,-s*.28,s*.11,s*.13);c.fill()}
+}
+function drawAcc(c,id,kind){
+  c.save();
+  if(id==='gozluk'){const [x,y,r]=EYEP[kind],R=r*1.7;
+    c.strokeStyle='#1b1b1f';c.lineWidth=R*.28;c.lineCap='round';c.beginPath();c.moveTo(x-R*.85,y-R*.15);c.lineTo(x-R*2.8,y-R*.55);c.stroke();
+    c.fillStyle='#1b2333';E(c,x,y,R,R*.86);c.fill();c.lineWidth=R*.24;c.strokeStyle='#ff5a7a';E(c,x,y,R,R*.86);c.stroke();
+    c.fillStyle='rgba(255,255,255,.55)';E(c,x+R*.32,y-R*.32,R*.32,R*.16,-.5);c.fill()}
+  else{const [x,y,s]=HEAD[kind];c.translate(x,y);accShape(c,id,s)}
+  c.restore();
+}
+
 /* ================= kayıt ================= */
 const SKEY='orman-dostlari-v1', MKEY='ders-bahcesi-v1';
-const fresh=()=>({v:1,region:0,unlocked:1,done:[],inv:{findik:1},an:{},tut:0,seen:{},solved:0,t:Date.now()});
+const fresh=()=>({v:1,region:0,unlocked:1,done:[],inv:{findik:1},an:{},tut:0,seen:{},solved:0,stars:0,owned:{},wear:{},shopHint:0,t:Date.now()});
 let S=fresh();
-try{const s=JSON.parse(localStorage.getItem(SKEY)||'null');if(s&&s.v===1)S=Object.assign(fresh(),s)}catch(e){}
+try{const s=JSON.parse(localStorage.getItem(SKEY)||'null');if(s&&s.v===1){S=Object.assign(fresh(),s);
+  if(s.stars===undefined)S.stars=Object.values(S.an).filter(x=>x.friend).length*5+Math.floor(S.solved/3)*2}}catch(e){}
 const persist=()=>{S.t=Date.now();try{localStorage.setItem(SKEY,JSON.stringify(S))}catch(e){}};
 function mainSave(fn){try{const m=JSON.parse(localStorage.getItem(MKEY)||'null')||{level:{},stars:{},stats:{},review:{},seen:{},muted:false,voice:true,day:null};fn(m);localStorage.setItem(MKEY,JSON.stringify(m))}catch(e){}}
 let MUTED=false;
@@ -641,18 +705,18 @@ function drawAnimalAt(c,kind,x,y,s,P,face=1,shadow='rgba(0,0,0,.22)',lift=0){
   const A=ANIMALS[kind],m=s*A.mul;
   c.save();c.translate(x,y);
   c.fillStyle=shadow;E(c,4*m,0,38*m*(1+lift/300),6.5*m);c.fill();
-  c.translate(0,lift);c.scale(m*face,m);A.draw(c,P);c.restore();
+  c.translate(0,lift);c.scale(m*face,m);A.draw(c,P);if(P.wear)drawAcc(c,P.wear,kind);c.restore();
 }
 /* hayvanların çizim sınırları: [sol, sağ, tepe] (birim ölçekte) */
 const BOUNDS={sincap:[-68,46,125],tavsan:[-44,48,116],fare:[-82,50,62],geyik:[-42,68,136],tilki:[-96,62,92],kirpi:[-42,52,52],ordek:[-44,46,70],kurbaga:[-32,48,52],kunduz:[-70,46,70],ayi:[-46,66,108],keci:[-40,64,126],kartavsan:[-44,48,116]};
-const idleP=(mood='n')=>({t:1.2,open:1,mood,walk:0,moving:false,eatK:0,food:null});
+const idleP=(mood='n',wear=null)=>({t:1.2,open:1,mood,walk:0,moving:false,eatK:0,food:null,wear});
 const PORT={};
-function portrait(kind,w=220,h=200){
-  const key=kind+w+'x'+h;if(PORT[key])return PORT[key];
+function portrait(kind,w=220,h=200,wear=S.wear[kind]||null){
+  const key=kind+w+'x'+h+(wear||'');if(PORT[key])return PORT[key];
   const cv=document.createElement('canvas');cv.width=w;cv.height=h;const c=cv.getContext('2d');
-  const [x0,x1,top]=BOUNDS[kind],mul=ANIMALS[kind].mul;
+  const [x0,x1,top0]=BOUNDS[kind],mul=ANIMALS[kind].mul,top=wear&&wear!=='gozluk'?Math.max(top0,-HEAD[kind][1]+HEAD[kind][2]*2.3):top0;
   const s=Math.min((h*.84)/(top*mul),(w*.9)/((x1-x0)*mul));
-  drawAnimalAt(c,kind,w/2-(x0+x1)/2*s*mul,h*.95,s,idleP('happy'),1,'rgba(0,0,0,.12)');
+  drawAnimalAt(c,kind,w/2-(x0+x1)/2*s*mul,h*.95,s,idleP('happy',wear),1,'rgba(0,0,0,.12)');
   return PORT[key]=cv.toDataURL();
 }
 
@@ -718,11 +782,33 @@ function reeds(c,x,y,s,rng){for(let i=0;i<8;i++){const dx=(rng()-.5)*s*.9,h=s*(1
 function lily(c,x,y,s,rng){c.fillStyle='#4e8f3c';c.beginPath();c.ellipse(x,y,s,s*.36,0,.35,TAU-.1);c.lineTo(x,y);c.closePath();c.fill();c.fillStyle='rgba(255,255,255,.15)';E(c,x-s*.3,y-s*.1,s*.35,s*.1);c.fill();
   if(rng()<.5){c.fillStyle='#ffc6d6';for(let i=0;i<6;i++){const a=i/6*TAU;E(c,x+s*.2+Math.cos(a)*s*.16,y-s*.22+Math.sin(a)*s*.08,s*.12,s*.07,a);c.fill()}c.fillStyle='#ffe066';E(c,x+s*.2,y-s*.24,s*.07,s*.05);c.fill()}}
 
+function rainbow(c,W,H,hy){const cx=W*.5,cy=hy+H*.04,R=Math.min(W*.42,H*.5),cols=['#ff5a5a','#ffa23c','#ffe14d','#5ccf6a','#4aa8ff','#8a6cff'];
+  c.save();c.globalAlpha=.55;c.lineWidth=R*.05;cols.forEach((col,i)=>{c.strokeStyle=col;c.beginPath();c.arc(cx,cy,R-i*R*.048,Math.PI,0);c.stroke()});c.restore()}
+function flowerBed(c,x,y,s){c.fillStyle='#6e4a2c';E(c,x,y,s*1.5,s*.48);c.fill();c.fillStyle='#8a5e38';E(c,x,y-s*.04,s*1.3,s*.38);c.fill();
+  for(let i=0;i<16;i++){const a=i/16*TAU;c.fillStyle=i%2?'#b9b4a8':'#d6d1c4';E(c,x+Math.cos(a)*s*1.45,y+Math.sin(a)*s*.46,s*.16,s*.1);c.fill()}
+  const cols=['#ff6fa0','#ffd23f','#ffffff','#b78cff','#ff9a5c','#7ab8ff'];
+  for(let i=0;i<14;i++){const a=i*2.4,r=(i%3+1)/3.4;flower(c,x+Math.cos(a)*s*1.1*r,y+Math.sin(a)*s*.3*r+s*.08,s*.34,cols[i%cols.length])}}
+function lantern(c,x,y,s){c.fillStyle='rgba(0,0,0,.18)';E(c,x,y,s*.2,s*.05);c.fill();
+  c.fillStyle='#5a3a22';c.fillRect(x-s*.05,y-s*1.6,s*.1,s*1.6);c.fillRect(x-s*.05,y-s*1.6,s*.42,s*.07);
+  const lx=x+s*.32,ly=y-s*1.3;c.strokeStyle='#2e2016';c.lineWidth=Math.max(1,s*.02);c.beginPath();c.moveTo(lx,y-s*1.53);c.lineTo(lx,ly-s*.27);c.stroke();
+  const g=c.createRadialGradient(lx,ly,1,lx,ly,s*.85);g.addColorStop(0,'rgba(255,214,120,.7)');g.addColorStop(1,'rgba(255,214,120,0)');c.fillStyle=g;E(c,lx,ly,s*.85,s*.85);c.fill();
+  c.fillStyle='#3b2b1e';c.beginPath();c.moveTo(lx-s*.15,ly-s*.17);c.lineTo(lx,ly-s*.29);c.lineTo(lx+s*.15,ly-s*.17);c.fill();
+  c.fillRect(lx-s*.13,ly-s*.17,s*.26,s*.34);c.fillStyle='#ffd36b';c.fillRect(lx-s*.09,ly-s*.13,s*.18,s*.26);c.fillStyle='#fff6d0';E(c,lx,ly,s*.04,s*.07);c.fill()}
+function mushHouse(c,x,y,s){c.fillStyle='rgba(0,0,0,.18)';E(c,x,y,s*.45,s*.07);c.fill();
+  const g=c.createLinearGradient(x-s*.3,0,x+s*.3,0);g.addColorStop(0,'#e9dcc2');g.addColorStop(.5,'#fff8ea');g.addColorStop(1,'#cdbb98');c.fillStyle=g;
+  c.beginPath();c.moveTo(x-s*.32,y);c.quadraticCurveTo(x-s*.36,y-s*.35,x-s*.25,y-s*.62);c.lineTo(x+s*.25,y-s*.62);c.quadraticCurveTo(x+s*.36,y-s*.35,x+s*.32,y);c.closePath();c.fill();
+  c.fillStyle='#7a4b2a';c.beginPath();c.moveTo(x-s*.13,y);c.lineTo(x-s*.13,y-s*.22);c.arc(x-s*.03,y-s*.22,s*.1,Math.PI,0);c.lineTo(x+s*.07,y);c.closePath();c.fill();
+  c.fillStyle='#ffd36b';E(c,x+s*.03,y-s*.1,s*.016,s*.016);c.fill();
+  c.fillStyle='#ffe9a8';E(c,x+s*.17,y-s*.4,s*.07,s*.07);c.fill();c.strokeStyle='#7a4b2a';c.lineWidth=Math.max(1,s*.016);c.beginPath();c.moveTo(x+s*.1,y-s*.4);c.lineTo(x+s*.24,y-s*.4);c.moveTo(x+s*.17,y-s*.47);c.lineTo(x+s*.17,y-s*.33);c.stroke();E(c,x+s*.17,y-s*.4,s*.07,s*.07);c.stroke();
+  const cg=c.createRadialGradient(x-s*.2,y-s*.95,s*.05,x,y-s*.65,s*.65);cg.addColorStop(0,'#ff8a73');cg.addColorStop(1,'#c3322a');c.fillStyle=cg;
+  c.beginPath();c.ellipse(x,y-s*.58,s*.62,s*.44,0,Math.PI,0);c.quadraticCurveTo(x,y-s*.5,x-s*.62,y-s*.58);c.fill();
+  c.fillStyle='#fff';[[-.3,-.78,.07],[.05,-.9,.08],[.33,-.74,.06],[-.08,-.7,.05],[.2,-.62,.04],[-.45,-.64,.04]].forEach(d=>{E(c,x+d[0]*s,y+d[1]*s,d[2]*s,d[2]*s*.8);c.fill()})}
 function buildScene(th,W,H,pr){
   const mk=()=>{const cv=document.createElement('canvas');cv.width=Math.round(W*pr);cv.height=Math.round(H*pr);const c=cv.getContext('2d');c.scale(pr,pr);return[cv,c]};
   const [sky,sc]=mk(),[land,c]=mk();
   paintSky(sc,W,H,th);
-  const rng=mulberry(th.seed),hy=H*th.hy,u=Math.min(W,H*1.3);
+  const rng=mulberry(th.seed),hy=H*th.hy,u=Math.min(W,H*1.3),ow=S.owned||{};
+  if(ow.gokkusagi)rainbow(sc,W,H,hy);
   th.ranges.forEach(r=>ridge(c,W,H,hy+r.off*H*.4,r.amp*H,r.cols,r.peaks,r.snow,rng));
   if(th.far)treeLine(c,W,hy+2,u*.035,th.far.cols,th.far.kind,th.far.dens,th.far.snow,rng);
   let gTop=hy;
@@ -777,6 +863,9 @@ function buildScene(th,W,H,pr){
     for(let i=0;i<4;i++){const t=.3+rng()*.6,x=rng()*W;add(t,()=>rock(c,x,depthY(t),u*(.012+t*.02)))}}
   if(dec==='snow'){for(let i=0;i<cnt*.5;i++){const t=.1+rng()*.85,x=rng()*W;add(t,()=>rock(c,x,depthY(t),u*(.012+t*.03),true))}
     for(let i=0;i<cnt*.6;i++){const t=rng(),x=rng()*W,s=u*(.03+t*.06);add(t,()=>{const g=c.createRadialGradient(x-s*.3,depthY(t)-s*.3,1,x,depthY(t),s);g.addColorStop(0,'#ffffff');g.addColorStop(1,'rgba(200,215,235,.0)');c.fillStyle=g;E(c,x,depthY(t),s,s*.3);c.fill()})}}
+  if(ow.bahce)add(.45,()=>flowerBed(c,W*.14,depthY(.45),u*.08));
+  if(ow.fener)add(.3,()=>lantern(c,W*.89,depthY(.3),u*.17));
+  if(ow.mantarev)add(.05,()=>mushHouse(c,W*.79,depthY(.05),u*.26));
   items.sort((a,b)=>a.y-b.y).forEach(i=>i.fn());
   return {sky,land,gTop};
 }
@@ -870,7 +959,7 @@ function render(){
   actors.forEach(actorPos);
   const order=[...actors].sort((a,b)=>a.py-b.py);
   for(const a of order){
-    const m=a.sc,P={t:time+a.tph,open:a.blink>0?.1:1,mood:a.state==='eat'?'eat':(a.jump>0||a.say>0)?'happy':a.st.hunger<35?'sad':'n',walk:a.walk,moving:a.state==='walk',eatK:a.eatK,food:a.food};
+    const m=a.sc,P={t:time+a.tph,open:a.blink>0?.1:1,mood:a.state==='eat'?'eat':(a.jump>0||a.say>0)?'happy':a.st.hunger<35?'sad':'n',walk:a.walk,moving:a.state==='walk',eatK:a.eatK,food:a.food,wear:S.wear[a.kind]||null};
     const jy=a.jump>0?-Math.abs(Math.sin(a.jump*Math.PI*2))*22*m:0,sx=a.shake>0?Math.sin(a.shake*40)*5*m:0;
     if(a.hover){c.fillStyle='rgba(255,220,90,.45)';E(c,a.px,a.py,48*m*ANIMALS[a.kind].mul,11*m*ANIMALS[a.kind].mul);c.fill()}
     drawAnimalAt(c,a.kind,a.px+sx,a.py,m,P,a.face,TH.shadow,jy);
@@ -920,6 +1009,7 @@ function renderHud(){
   const goal=TH.goal*TH.animals.length,have=TH.animals.reduce((s,k)=>s+Math.min(TH.goal,anState(k).hearts),0);
   $('#rBar').style.width=(have/goal*100)+'%';
   $('#rTxt').textContent=S.done[S.region]?`Tamamlandı · ${have} / ${goal} kalp`:`Dostluk kalpleri: ${have} / ${goal}`;
+  $('#starN').textContent=S.stars||0;
   $('#sndBtn').textContent=MUTED?'🔇':'🔊';$('#sndBtn').classList.toggle('off',MUTED);
 }
 let selFood=null;
@@ -1124,10 +1214,13 @@ function right(q){PZ.lock=true;if(!PZ.miss)PZ.first++;sfx.good();const p=pick(PR
 function chooseFoods(n){const ks=TH.animals,need=ks.filter(k=>!anState(k).friend),pool=need.length?need:ks,plan={},out=[];
   for(let i=0;i<n;i++){const k=[...pool].sort((a,b)=>{const fa=ANIMALS[a].food,fb=ANIMALS[b].food;return((S.inv[fa]||0)+(plan[fa]||0))-((S.inv[fb]||0)+(plan[fb]||0))||Math.random()-.5})[0];const f=ANIMALS[k].food;plan[f]=(plan[f]||0)+1;out.push(f)}
   return out}
+function addStars(n){S.stars=(S.stars||0)+n;persist();renderHud();const b=$('#starBtn');b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump')}
+function shopHint(){if(S.shopHint||S.stars<5||S.tut<4)return;S.shopHint=1;persist();$('#starBtn').classList.add('want');
+  talk(TH.animals[0],"Yıldızların birikti! Yukarıdaki yıldız düğmesine dokun. Hediye Dükkânı'ndan bize süs alabilirsin.")}
 function reward(){
   const n=Math.max(2,1+PZ.first),foods=chooseFoods(n),stars=PZ.first===3?3:PZ.first>=2?2:1;
-  S.solved+=3;persist();creditDay(stars);
-  const card=openOv(`<div class="reward"><h2>${PZ.first===3?'Hepsini bildin!':'Aferin!'}</h2><p>${n} yiyecek kazandın. Hepsini sepete koyalım!</p><div class="rits">${foods.map((f,i)=>`<span style="animation-delay:${i*.12}s">${foodHTML(f,'')}</span>`).join('')}</div><button class="big" id="toBasket">Sepete koy</button></div>`);
+  S.solved+=3;persist();creditDay(stars);addStars(stars);
+  const card=openOv(`<div class="reward"><h2>${PZ.first===3?'Hepsini bildin!':'Aferin!'}</h2><p>${n} yiyecek kazandın. Hepsini sepete koyalım!</p><div class="earn">+${stars} ⭐</div><div class="rits">${foods.map((f,i)=>`<span style="animation-delay:${i*.12}s">${foodHTML(f,'')}</span>`).join('')}</div><button class="big" id="toBasket">Sepete koy</button></div>`);
   sfx.win();speak(`${PZ.first===3?'Hepsini bildin!':'Aferin!'} ${n} yiyecek kazandın.`);confetti();
   $('#toBasket').onclick=()=>{sfx.tap();const rects=[...card.querySelectorAll('.rits span')].map(s=>s.getBoundingClientRect());closePuzzle(true);flyFoods(foods,rects)};
 }
@@ -1144,26 +1237,27 @@ function flyFoods(foods,rects){
   setTimeout(()=>{renderInv();
     if(S.tut===3){S.tut=4;persist();talkNow(TH.animals[1],'Şimdi yiyecekleri sahiplerine ver! Her hayvan farklı bir şey sever. Kimin ne istediğini balonlardan görebilirsin.')}
     else{const hungry=actors.filter(a=>a.st.hunger<70&&S.inv[ANIMALS[a.kind].food]>0);if(hungry.length){const a=pick(hungry);talkNow(a.kind,`Yaşasın! Bana ${FOODS[ANIMALS[a.kind].food].n} verir misin?`)}}
+    shopHint();
   },1100+foods.length*120);
 }
 
 /* ---------- dost kartı ---------- */
 function showFriend(kind){
-  const A=ANIMALS[kind];paused=true;
-  openOv(`<div class="friend"><span class="tag">Yeni Dost Kartı!</span><img src="${portrait(kind,300,270)}" alt=""><h2>${A.name}</h2><div class="likes">En sevdiği yiyecek: ${foodHTML(A.food,'')} ${FOODS[A.food].n}</div>
+  const A=ANIMALS[kind];paused=true;addStars(5);
+  openOv(`<div class="friend"><span class="tag">Yeni Dost Kartı!</span><img src="${portrait(kind,300,270)}" alt=""><h2>${A.name}</h2><div class="likes">En sevdiği yiyecek: ${foodHTML(A.food,'')} ${FOODS[A.food].n}</div><div class="earn">+5 ⭐</div>
     <div class="fact"><b>Biliyor muydun?</b>${A.fact}</div><button class="big green" id="fOk">Harika!</button></div>`);
   sfx.win();confetti();speak(`Artık ${A.sh} ile arkadaşsınız! Biliyor muydun? ${A.fact}`);
-  $('#fOk').onclick=()=>{sfx.tap();closeOv();paused=false;last=performance.now();checkRegion()};
+  $('#fOk').onclick=()=>{sfx.tap();closeOv();paused=false;last=performance.now();checkRegion();if(OV.hidden)shopHint()};
 }
 function checkRegion(){
   if(S.done[S.region])return;
   if(!TH.animals.every(k=>anState(k).friend))return;
-  S.done[S.region]=true;const next=S.region+1;if(next<REGIONS.length)S.unlocked=Math.max(S.unlocked,next+1);persist();creditRegions();renderHud();
+  S.done[S.region]=true;const next=S.region+1;if(next<REGIONS.length)S.unlocked=Math.max(S.unlocked,next+1);persist();creditRegions();addStars(10);
   paused=true;
   if(next<REGIONS.length){
     const N=REGIONS[next];
     openOv(`<div class="friend"><span class="tag">Bölüm tamamlandı!</span><h2 style="margin-top:10px">${TH.name} dostlarının hepsi seninle arkadaş oldu!</h2>
-      <p class="likes" style="margin-top:8px">Yeni bir yer açıldı:</p><canvas class="thumb" id="nthumb" width="640" height="360"></canvas>
+      <div class="earn" style="margin-top:10px">+10 ⭐</div><p class="likes">Yeni bir yer açıldı:</p><canvas class="thumb" id="nthumb" width="640" height="360"></canvas>
       <h2 style="font-size:28px;margin-bottom:14px">${N.name}</h2><button class="big" id="go">Haydi gidelim! ▶</button><button class="link" id="stay">Biraz daha burada kalayım</button></div>`);
     drawThumb($('#nthumb'),next);
     sfx.win();confetti();speak(`Bölüm tamamlandı! Yeni bir yer açıldı: ${N.name}. Orada yeni dostlar seni bekliyor!`);
@@ -1205,7 +1299,7 @@ function drawThumb(cv,i){
   const R=REGIONS[i],w=320,h=180,pr=cv.width/w,c=cv.getContext('2d');
   const sc=buildScene(R,w,h,pr);c.drawImage(sc.sky,0,0,cv.width,cv.height);c.drawImage(sc.land,0,0,cv.width,cv.height);
   c.save();c.scale(pr,pr);const gt=sc.gTop,yb=h-10,y0=gt+(yb-gt)*.35;
-  R.animals.forEach((k,j)=>drawAnimalAt(c,k,w*(.25+j*.25),lerp(y0,yb,j%2?.5:.9),.5,idleP(),j===2?-1:1,R.shadow));c.restore();
+  R.animals.forEach((k,j)=>drawAnimalAt(c,k,w*(.25+j*.25),lerp(y0,yb,j%2?.5:.9),.5,idleP('n',S.wear[k]||null),j===2?-1:1,R.shadow));c.restore();
 }
 function openMap(){
   ac();sfx.tap();hush();const m=$('#map');paused=true;
@@ -1244,6 +1338,51 @@ function openAlbum(){
   const card=openOv(h);card.querySelector('[data-x]').onclick=()=>{sfx.tap();closeOv();paused=false;last=performance.now()};
 }
 
+/* ---------- hediye dükkânı ---------- */
+let shopTab='acc';
+function openShop(){ac();sfx.tap();paused=true;hush();DQ.length=0;dCur=null;$('#dlg').classList.remove('on');$('#starBtn').classList.remove('want');renderShop()}
+function closeShop(){sfx.tap();closeOv();paused=false;last=performance.now()}
+function decoPreview(c,id){const w=220,h=180,g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,'#cfeaf7');g.addColorStop(.62,'#e8f6ee');g.addColorStop(.63,'#a8d67e');g.addColorStop(1,'#78b850');c.fillStyle=g;c.fillRect(0,0,w,h);
+  if(id==='bahce')flowerBed(c,110,140,55);else if(id==='fener')lantern(c,85,165,95);else if(id==='mantarev')mushHouse(c,110,168,165);
+  else if(id==='gokkusagi'){c.fillStyle='#cfeaf7';c.fillRect(0,0,w,112);rainbow(c,w,h*1.25,118)}}
+function renderShop(){
+  const items=SHOP.filter(i=>i.t===shopTab),show=TH.animals;
+  let h=`<div class="chead"><img src="${portrait('sincap',140,128)}" alt=""><h2>Hediye Dükkânı<small>Yıldızlarınla dostlarına hediye al</small></h2><span class="bal">⭐ ${S.stars}</span><button class="x" data-x aria-label="Kapat">×</button></div>
+    <div class="cbody"><div class="tabs"><button class="tab ${shopTab==='acc'?'on':''}" data-tab="acc">Takılar</button><button class="tab ${shopTab==='deco'?'on':''}" data-tab="deco">Orman Süsleri</button></div><div class="sgrid">`;
+  items.forEach((it,i)=>{const own=S.owned[it.id],can=S.stars>=it.p;
+    const prev=it.t==='acc'?`<img src="${portrait(show[i%show.length],220,180,it.id)}" alt="" style="width:100%;max-width:200px;aspect-ratio:220/180;border-radius:14px;background:#eef6e6">`:`<canvas width="440" height="360" data-prev="${it.id}"></canvas>`;
+    h+=`<div class="sitem">${prev}<b>${it.n}</b>${own?(it.t==='acc'?`<button class="sbtn green" data-wear="${it.id}">Bir dosta tak</button>`:'<span class="sown">Ormanda ✓</span>'):
+      `<button class="sbtn ${can?'':'dis'}" data-buy="${it.id}">⭐ ${it.p}</button>${can?'':`<small>${it.p-S.stars} yıldız daha lazım</small>`}`}</div>`});
+  h+='</div></div>';
+  const card=openOv(h);
+  card.querySelector('[data-x]').onclick=closeShop;
+  card.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{sfx.tap();shopTab=b.dataset.tab;renderShop()});
+  card.querySelectorAll('canvas[data-prev]').forEach(cv=>{const c=cv.getContext('2d');c.scale(2,2);decoPreview(c,cv.dataset.prev)});
+  card.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>buy(b.dataset.buy));
+  card.querySelectorAll('[data-wear]').forEach(b=>b.onclick=()=>{sfx.tap();chooseWearer(b.dataset.wear)});
+  speak('Hediye Dükkânı. '+S.stars+' yıldızın var.');
+}
+function buy(id){
+  const it=SHOP.find(x=>x.id===id);
+  if(S.stars<it.p){sfx.no();speak(`${it.p-S.stars} yıldız daha lazım. Bilmece Ağacı'nda yıldız kazanabilirsin!`);return}
+  S.stars-=it.p;S.owned[id]=1;persist();renderHud();sfx.win();confetti();
+  if(it.t==='deco'){layout();renderShop();speak(`${it.n} ormana yerleştirildi!`)}
+  else chooseWearer(id);
+}
+function chooseWearer(id){
+  const it=SHOP.find(x=>x.id===id),ks=TH.animals;
+  let h=`<div class="chead"><img src="${portrait('sincap',140,128)}" alt=""><h2>Kime takalım?<small>${it.n}</small></h2><button class="x" data-x aria-label="Kapat">×</button></div><div class="cbody"><button class="back2" id="wBack">‹ Dükkâna dön</button><div class="wgrid">`;
+  ks.forEach(k=>{const on=S.wear[k]===id;h+=`<button class="wbtn ${on?'on':''}" data-k="${k}"><img src="${portrait(k,220,180,id)}" alt=""><b>${ANIMALS[k].sh}</b><small>${on?'Takılı · çıkarmak için dokun':S.wear[k]?'Başka bir takısı var':'Dokun ve tak'}</small></button>`});
+  h+='</div></div>';
+  const card=openOv(h);card.querySelector('[data-x]').onclick=closeShop;$('#wBack').onclick=()=>{sfx.tap();renderShop()};
+  speak(`${it.n} kime takalım?`);
+  card.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;
+    if(S.wear[k]===id){delete S.wear[k];persist();sfx.tap();chooseWearer(id);return}
+    S.wear[k]=id;persist();sfx.good();closeOv();paused=false;last=performance.now();
+    const a=actors.find(x=>x.kind===k);if(a){a.jump=.8;a.say=1.5;for(let i=0;i<8;i++)fxp.push({k:'spark',x:a.px+(Math.random()-.5)*70*a.sc,y:a.py-70*a.sc-Math.random()*40,vy:-40,s:10,life:1})}
+    talkNow(k,pick(['Çok güzel olmuş! Teşekkür ederim!','Vay, bana çok yakıştı!','Bu hediyeye bayıldım!']))});
+}
+
 /* ================= konfeti ================= */
 function confetti(){
   if(reduced)return;const fx=$('#fx'),c=fx.getContext('2d'),d=Math.min(2,devicePixelRatio||1);
@@ -1259,6 +1398,7 @@ function confetti(){
 $('#quizBtn').onclick=()=>{sfx.tap();openPuzzle()};
 $('#mapBtn').onclick=openMap;
 $('#albumBtn').onclick=openAlbum;
+$('#starBtn').onclick=openShop;
 $('#sndBtn').onclick=()=>{MUTED=!MUTED;if(MUTED)hush();mainSave(m=>{m.muted=MUTED});renderHud();ac();sfx.tap()};
 const embedded=window.top!==window;
 if(embedded)$('#homeBtn').hidden=true;
@@ -1282,7 +1422,7 @@ $('#playBtn').onclick=()=>{
   else if(S.tut===2){talk('sincap','Bilmece Ağacı düğmesine dokun. Soruları çöz, yiyecek kazan!',{sticky:true,onShow:()=>$('#quizBtn').classList.add('want')})}
   else greet();
 };
-window.OD={get S(){return S},enterRegion,openPuzzle,openMap,openAlbum,showFriend,checkRegion,drawAnimalAt,ANIMALS,REGIONS,idleP,portrait,feed:(k,f)=>{const a=actors.find(x=>x.kind===k);a&&feed(a,f)},actors:()=>actors,pz:()=>PZ};
+window.OD={get S(){return S},enterRegion,openPuzzle,openMap,openAlbum,showFriend,checkRegion,drawAnimalAt,ANIMALS,REGIONS,idleP,portrait,feed:(k,f)=>{const a=actors.find(x=>x.kind===k);a&&feed(a,f)},actors:()=>actors,pz:()=>PZ,openShop,buy,addStars:n=>addStars(n)};
 })();
 </script>
 </body>
